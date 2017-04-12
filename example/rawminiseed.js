@@ -6,35 +6,8 @@ var OregonDSP = seisplotjs_filter.OregonDSP
 
 //seisplotjs_filter.tryDFT()
 //tryDFT();
-//var doRunQuery = false;
-var doRunQuery = true;
-
-function tryDFT() {
-  let npts = 16;
-  let signal = [];
-  for (let i=0; i<npts; i++) {
-    //signal[i] = Math.random();
-    signal[i] = 0;
-  }
-  signal[0] = -1;
-  var fftOut = doDFT(signal, signal.length);
-      simpleLogPlot(fftOut, "div.fftplot")
-  for (let i=0; i<npts; i++) {
-    console.log(i+" "+fftOut[i]);
-  }
-};
-function doDFT(waveform, npts, sps) {
-  let log2N = 4;
-  let N = 16;
-  while(N < npts) { log2N += 1; N = 2 * N;}
-  let dft = new OregonDSP.com.oregondsp.signalProcessing.fft.RDFT(log2N);
-  let out = Array(N).fill(0)
-  dft.evaluate_7u45pk$(waveform, out);
-  for (let i=0; i<10; i++) {
-    console.log("dft "+i+" "+out[i]);
-  }
-  return out;
-}
+var doRunQuery = false;
+//var doRunQuery = true;
 
 // this comes from the seisplotjs waveformplot bundle
 //var wp = seisplotjs_waveformplot
@@ -46,8 +19,8 @@ var dsQuery = new ds.DataSelectQuery()
   .stationCode('JSC')
   .locationCode('00')
   .channelCode('HHZ')
-  .startTime(new Date(Date.parse('2017-03-01T20:17:04Z')))
-  .endTime(new Date(Date.parse('2017-03-01T20:17:14Z')));
+  .startTime(new Date(Date.parse('2017-03-01T20:15:04Z')))
+  .endTime(new Date(Date.parse('2017-03-01T20:16:14Z')));
 
 var div = d3.select('div.miniseed');
 var divP = div.append('p');
@@ -57,7 +30,7 @@ divP.append("a")
     .attr("href", url)
     .text(url);
 
-if (doRunQuery) dsQuery.query().then(function(records) {
+function processMiniseed(records) {
 var table = d3.select("div.miniseed")
         .select("table");
       if ( table.empty()) {
@@ -120,21 +93,45 @@ var table = d3.select("div.miniseed")
       let seismogram = miniseed.merge(records)[0];
 console.log("seismogram: "+seismogram+" "+seismogram.y().slice(0,10)+" npts:"+seismogram.numPoints()+" sps: "+seismogram.sampleRate());
 //      seismogram = seisplotjs_filter.rMean(seismogram);
+      let butterworth = seisplotjs_filter.createFilter("butterworth", 
+                                 seisplotjs_filter.LOW_PASS,
+                                 0, // epsilon (unused for butterworth)
+                                 0, // low corner
+                                 1, // high corner
+                                 4, // poles
+                                 1, // causal/non
+                                 1/seismogram.sampleRate());
+      butterworth.filterInPlace(seismogram.y());
       let fftOut = seisplotjs_filter.doDFT(seismogram.y(), seismogram.numPoints(), seismogram.sampleRate() );
       for (let i=0; i<10; i++) {
         console.log("seis dft "+i+" "+fftOut[i]);
       }
 
-      simpleLogPlot(fftOut, "div.fftplot")
+      simpleLogPlot(fftOut, "div.fftplot", seismogram.sampleRate())
 
-}).catch( function(error) {
-  d3.select("div.miniseed").append('p').html("Error loading data." +error);
-  console.assert(false, error);
-});
+}
 
-function simpleLogPlot(fft, cssSelector) {
-console.log("in simpleLogPlot "+fft.length);
+if (doRunQuery) {
+  dsQuery.query().then(processMiniseed).catch( function(error) {
+    d3.select("div.miniseed").append('p').html("Error loading data." +error);
+    console.assert(false, error);
+  });
+} else {
+  d3.request("fdsnws-dataselect_2017-04-12T13_42_59Z.mseed")
+    .responseType("arraybuffer")
+    .get(function(error, rawBuffer) {
+if(error) console.log("error: "+error);
+console.log("rawBuffer size: "+rawBuffer.response.length);
+      var records = miniseed.parseDataRecords(rawBuffer.response);
+console.log("got "+records.length+" records");
+      processMiniseed(records);
+    });
+}
 
+function simpleLogPlot(fft, cssSelector, sps) {
+console.log("in simpleLogPlot "+fft.length +" "+sps);
+
+    var T = 1/sps;
     var ampLength = fft.length/2 +1;
     var fftReal = fft.slice(0, ampLength);
     var fftImag = new Array(ampLength);
@@ -152,7 +149,7 @@ console.log("in simpleLogPlot "+fft.length);
   for (let i=0; i<9 && i<fftAmp.length; i++) {
     console.log(i+" Amp "+fftAmp[i]+"  r="+fftReal[i]+" i="+fftImag[i]);
   }
-
+  fftAmp = fftAmp.slice(1);
 
     var svg = d3.select(cssSelector).select("svg");
 
@@ -161,17 +158,17 @@ console.log("in simpleLogPlot "+fft.length);
     height = +svg.attr("height") - margin.top - margin.bottom,
     g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var x = d3.scaleLinear()
+var x = d3.scaleLog()
     .rangeRound([0, width]);
 
 var y = d3.scaleLog()
     .rangeRound([height, 0]);
 
 var line = d3.line()
-    .x(function(d, i) { return x(i); })
+    .x(function(d, i) { return x((i+1)*T); })
     .y(function(d, i) { return y(d); });
 
-  x.domain([0, fftAmp.length]);
+  x.domain([T, fftAmp.length*T]);
 //  x.domain(d3.extent(fftAmp, function(d, i) { return i; }));
   y.domain(d3.extent(fftAmp, function(d, i) { return d; }));
   if (y.domain()[0] === y.domain()[1]) {
@@ -183,8 +180,16 @@ console.log("x domain: "+x.domain());
   g.append("g")
       .attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x))
-    .select(".domain")
-      .remove();
+    .append("text")
+      .attr("fill", "#000")
+      .attr("y", 0)
+      .attr("x", width/2)
+      .attr("dy", "0.71em")
+      .attr("text-anchor", "end")
+      .text("Hertz");
+
+//    .select(".domain")
+//      .remove();
 
   g.append("g")
       .call(d3.axisLeft(y))
