@@ -3,7 +3,12 @@ import * as model from 'seisplotjs-model';
 
 console.log("OregonDSP: "+OregonDSP);
 
+
 export { OregonDSP, model };
+
+export let BAND_PASS = OregonDSP.com.oregondsp.signalProcessing.filter.iir.PassbandType.BANDPASS;
+export let LOW_PASS = OregonDSP.com.oregondsp.signalProcessing.filter.iir.PassbandType.LOWPASS;
+export let HIGH_PASS = OregonDSP.com.oregondsp.signalProcessing.filter.iir.PassbandType.HIGHPASS;
 
 export function amplitude(real, imag) {
   return Math.hypot(real, imag);
@@ -67,6 +72,42 @@ console.log("doDFT: N: "+N+" log2N: "+log2N+"  waveform.length: "+waveform.lengt
   }
   
   let out = Array(N).fill(0);
-  dft.evaluate_7u45pk$(inArray, out);
+  dft.evaluate(inArray, out);
   return out;
+}
+
+export function createFilter(filterName,
+                           passband,
+                           epsilon,
+                           lowFreqCorner,
+                           highFreqCorner,
+                           numPoles,
+                           filterType,
+                           delta) {
+  var filter;
+  if (filterName === "chebyshevI") {
+            filter = new OregonDSP.com.oregondsp.signalProcessing.filter.iir.ChebyshevI(numPoles,
+                                    epsilon,
+                                    passband,
+                                    lowFreqCorner,
+                                    highFreqCorner,
+                                    delta);
+        } else if (filterName === "chebyshevII") {
+            filter = new OregonDSP.com.oregondsp.signalProcessing.filter.iir.ChebyshevII(numPoles,
+                                     epsilon,
+                                     passband,
+                                     lowFreqCorner,
+                                     highFreqCorner,
+                                     delta);
+        } else if (filterName == null || filterName === "butterworth") {
+            // butterworth is default
+            filter = new OregonDSP.com.oregondsp.signalProcessing.filter.iir.Butterworth(numPoles,
+                                     passband,
+                                     lowFreqCorner,
+                                     highFreqCorner,
+                                     delta);
+        } else {
+          throw new Error("Unknown filter type: "+filterName);
+        }
+        return filter;
 }
