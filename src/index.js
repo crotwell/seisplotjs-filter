@@ -46,20 +46,6 @@ export function tryDFT() {
   this.doDFT(signal, signal.length);
 }
 
-export function highPass(waveform, cutoffFreq) {
-  applyFilter(DSP.DSP.HIGHPASS, waveform, waveform.sampleRate, cutoffFreq);
-}
-
-export function lowPass(waveform, cutoffFreq) {
-  applyFilter(DSP.DSP.LOWPASS, waveform, waveform.sampleRate, cutoffFreq);
-}
-
-export function applyFilter(filterStyle, dataArray, sps, cutoffFreq) {
-  let filter = new DSP.IIRFilter(filterStyle, cutoffFreq, 1, sps);
-  filter.process(dataArray);
-  return;
-}
-
 export function doDFT(waveform, npts, sps) {
   let log2N = 4;
   let N = 16;
