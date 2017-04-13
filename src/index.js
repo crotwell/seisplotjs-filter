@@ -36,7 +36,7 @@ function meanOfSlice(dataSlice, totalPts) {
   }
 }
 
-export function doDFT(waveform, npts, sps) {
+export function doDFT(waveform, npts) {
   let log2N = 4;
   let N = 16;
   while(N < npts) { log2N += 1; N = 2 * N;}
