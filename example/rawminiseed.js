@@ -93,14 +93,14 @@ var table = d3.select("div.miniseed")
       let seismogram = miniseed.merge(records)[0];
 console.log("seismogram: "+seismogram+" "+seismogram.y().slice(0,10)+" npts:"+seismogram.numPoints()+" sps: "+seismogram.sampleRate());
 //      seismogram = seisplotjs_filter.rMean(seismogram);
-      let butterworth = seisplotjs_filter.createFilter("butterworth", 
+      let butterworth = seisplotjs_filter.createButterworth(
+                                 4, // poles
                                  seisplotjs_filter.LOW_PASS,
-                                 0, // epsilon (unused for butterworth)
                                  0, // low corner
                                  1, // high corner
-                                 4, // poles
-                                 1, // causal/non
-                                 1/seismogram.sampleRate());
+                                 
+                                 1/seismogram.sampleRate() // delta (period)
+                        );
       butterworth.filterInPlace(seismogram.y());
       let fftOut = seisplotjs_filter.doDFT(seismogram.y(), seismogram.numPoints(), seismogram.sampleRate() );
       for (let i=0; i<10; i++) {
