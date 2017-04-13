@@ -1,14 +1,14 @@
 
 // this comes from the seisplotjs miniseed bundle
 var ds = seisplotjs_fdsndataselect;
-var miniseed = ds.miniseed;
+var wp = seisplotjs_waveformplot;
+var d3 = wp.d3;
+var miniseed = wp.miniseed;
 var OregonDSP = seisplotjs_filter.OregonDSP
 
 var doRunQuery = true;
 // doRunQuery = false;//for testing
 
-// this comes from the seisplotjs waveformplot bundle
-//var wp = seisplotjs_waveformplot
 
 var dsQuery = new ds.DataSelectQuery()
   .nodata(404)
@@ -87,24 +87,45 @@ var table = d3.select("div.miniseed")
           return d.header.sampleRate;
         });
 
-      let seismogram = miniseed.merge(records)[0];
-console.log("seismogram: "+seismogram+" "+seismogram.y().slice(0,10)+" npts:"+seismogram.numPoints()+" sps: "+seismogram.sampleRate());
+      let seismogram = miniseed.merge(records);
+for(let i=0; i<seismogram.length; i++) {
+console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" npts:"+seismogram[i].numPoints()+" sps: "+seismogram[i].sampleRate());
+}
 //      seismogram = seisplotjs_filter.rMean(seismogram);
+
+      var svgdiv = d3.select('div.rawseisplot');
+      var seisplot = new wp.chart(svgdiv, seismogram);
+      seisplot.draw();
+
       let butterworth = seisplotjs_filter.createButterworth(
                                  4, // poles
                                  seisplotjs_filter.LOW_PASS,
                                  0, // low corner
                                  1, // high corner
                                  
-                                 1/seismogram.sampleRate() // delta (period)
+                                 1/seismogram[0].sampleRate() // delta (period)
                         );
-      butterworth.filterInPlace(seismogram.y());
-      let fftOut = seisplotjs_filter.doDFT(seismogram.y(), seismogram.numPoints(), seismogram.sampleRate() );
+      var filteredSeismogram = [];
+      for(let i=0; i<seismogram.length; i++) {
+console.log(" seis "+seismogram[i].codes());
+for (var sp in seismogram[i]) { console.log("prop "+sp);}
+        var s = seismogram[i].clone();
+console.log(" clone "+s.codes());
+console.log(" clone "+s.chanCode().charAt(2));
+        butterworth.filterInPlace(s.y());
+        filteredSeismogram.push(s);
+      }
+
+      var svgFiltered = d3.select('div.filterseisplot');
+      var filteredPlot = new wp.chart(svgFiltered, filteredSeismogram);
+      filteredPlot.draw();
+
+      let fftOut = seisplotjs_filter.doDFT(seismogram[0].y(), seismogram[0].numPoints() );
       for (let i=0; i<10; i++) {
         console.log("seis dft "+i+" "+fftOut[i]);
       }
 
-      simpleLogPlot(fftOut, "div.fftplot", seismogram.sampleRate())
+      simpleLogPlot(fftOut, "div.fftplot", seismogram[0].sampleRate())
 
 }
 

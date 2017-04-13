@@ -9,17 +9,25 @@
 <h1>Testing seisplotjs-filter.</h1>
  <p>See <a href="https://github.com/crotwell/seisplotjs-filter">the Github</a> page for more information.</p>
 
+<h5>Miniseed records:</h5>
 <div class="miniseed">
 </div>
 
+<h5>Raw seismogram</h5>
+<div class="rawseisplot"></div>
+
+<h5>Filtered seismogram</h5>
+<div class="filterseisplot"></div>
+
+<h5>DFT seismogram</h5>
 <div class="fftplot" >
   <svg width="960" height="500"></svg>
 </div>
 
-<script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="seisplotjs_filter_001s_standalone.js"></script>
 <script src="seisplotjs_fdsndataselect_01s_standalone.js"></script>
-<script src="rawminiseed.js"></script>
+<script src="seisplotjs_waveformplot_12s_standalone.js"></script>
+<script src="simplefiltering.js"></script>
 </body>
 </html>
 
