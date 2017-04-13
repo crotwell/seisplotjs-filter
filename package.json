@@ -4,7 +4,7 @@
   "description": "Basic timesseries functions for seismic data.",
   "main": "./lib/index.js",
   "dependencies": {
-    "seisplotjs-model": ">= 1.0.1",
+    "seisplotjs-model": ">= 0.0.1",
     "oregondsp": ">= 0.0.1"
   },
   "scripts": {
