@@ -4,15 +4,12 @@ var ds = seisplotjs_fdsndataselect;
 var miniseed = ds.miniseed;
 var OregonDSP = seisplotjs_filter.OregonDSP
 
-//seisplotjs_filter.tryDFT()
-//tryDFT();
-var doRunQuery = false;
-//var doRunQuery = true;
+var doRunQuery = true;
+// doRunQuery = false;//for testing
 
 // this comes from the seisplotjs waveformplot bundle
 //var wp = seisplotjs_waveformplot
 
-//  .host('service.scedc.caltech.edu')
 var dsQuery = new ds.DataSelectQuery()
   .nodata(404)
   .networkCode('CO')
