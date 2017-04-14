@@ -120,7 +120,7 @@ console.log(" clone "+s.chanCode().charAt(2));
       var filteredPlot = new wp.chart(svgFiltered, filteredSeismogram);
       filteredPlot.draw();
 
-      let fftOut = seisplotjs_filter.doDFT(seismogram[0].y(), seismogram[0].numPoints() );
+      let fftOut = seisplotjs_filter.calcDFT(seismogram[0].y(), seismogram[0].numPoints() );
       for (let i=0; i<10; i++) {
         console.log("seis dft "+i+" "+fftOut[i]);
       }

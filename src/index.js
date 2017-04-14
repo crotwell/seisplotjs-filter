@@ -13,12 +13,14 @@ export function amplitude(real, imag) {
   return Math.hypot(real, imag);
 }
 
-export function rMean(waveform) {
-  let meanVal = mean(waveform);
-  let demeanY = waveform.y().map(function(d) {
+export function rMean(seis) {
+  let out = seis.clone();
+  let meanVal = mean(seis);
+  let demeanY = seis.y().map(function(d) {
     return d-meanVal;
   });
-  return new model.Seismogram(demeanY, waveform.sampleRate(), waveform.start());
+  out.y(demeanY);
+  return out;
 }
 
 export function mean(waveform) {
@@ -36,7 +38,7 @@ function meanOfSlice(dataSlice, totalPts) {
   }
 }
 
-export function doDFT(waveform, npts) {
+export function calcDFT(waveform, npts) {
   let log2N = 4;
   let N = 16;
   while(N < npts) { log2N += 1; N = 2 * N;}
