@@ -1,17 +1,17 @@
 {
   "name": "seisplotjs-filter",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Basic timesseries functions for seismic data.",
   "main": "./lib/index.js",
   "dependencies": {
-    "seisplotjs-model": ">= 0.0.1",
+    "seisplotjs-model": ">= 1.0.0",
     "oregondsp": ">= 1.0.0"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "babel --presets es2015 -d lib/ src/",
-    "standalone": "browserify src/index.js --standalone seisplotjs_filter -o seisplotjs_filter_001s_standalone.js -t [ babelify --presets [ es2015 ] ]",
+    "standalone": "browserify src/index.js --standalone seisplotjs_filter -o seisplotjs_filter_100_standalone.js -t [ babelify --presets [ es2015 ] ]",
     "prepublish": "npm run compile"
   },
   "repository": {
