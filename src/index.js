@@ -9,7 +9,7 @@ export { OregonDSP, model };
 // its Complex instead of the simple one defined in model
 model.createComplex = function(real, imag) {
   return new OregonDSP.filter.iir.Complex_init(real, imag);
-}
+};
 
 export let BAND_PASS = OregonDSP.filter.iir.PassbandType.BANDPASS;
 export let LOW_PASS = OregonDSP.filter.iir.PassbandType.LOWPASS;
