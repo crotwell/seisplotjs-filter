@@ -5,7 +5,7 @@
   "main": "./lib/index.js",
   "dependencies": {
     "seisplotjs-model": ">= 0.0.1",
-    "oregondsp": ">= 0.0.1"
+    "oregondsp": ">= 1.0.0"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
