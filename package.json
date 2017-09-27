@@ -11,7 +11,7 @@
     "lint": "eslint 'src/*.js'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "babel --presets es2015 -d lib/ src/",
-    "standalone": "browserify src/index.js --standalone seisplotjs_filter -o seisplotjs_filter_100_standalone.js -t [ babelify --presets [ es2015 ] ]",
+    "standalone": "browserify src/index.js --standalone seisplotjs_filter -o seisplotjs_filter_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
     "prepare": "npm run compile"
   },
   "repository": {
