@@ -1,11 +1,11 @@
 {
   "name": "seisplotjs-filter",
-  "version": "1.0.2-SNAPSHOT",
+  "version": "1.0.2-alpha.1",
   "description": "Basic timesseries functions for seismic data.",
   "main": "./lib/index.js",
   "dependencies": {
     "oregondsp": "^1.0.0",
-    "seisplotjs-model": "^1.0.1-SNAPSHOT"
+    "seisplotjs-model": "^1.0.1-alpha.1"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
