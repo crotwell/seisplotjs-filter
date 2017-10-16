@@ -38,7 +38,7 @@ export function rotate(seisA, azimuthA, seisB, azimuthB, azimuth) {
 // seisB => x
 // seisA => y
 // sense of rotation is opposite for aziumth vs math
-  const rotRadian = -1 * DtoR * (azimuth - azimuthA);
+  const rotRadian = 1 * DtoR * (azimuth - azimuthA);
   const cosTheta = Math.cos(rotRadian);
   const sinTheta = Math.sin(rotRadian);
   let x = new Array(seisA.y().length);
@@ -47,8 +47,8 @@ export function rotate(seisA, azimuthA, seisB, azimuthB, azimuth) {
     x[i] = cosTheta * seisB.yAtIndex(i) - sinTheta * seisA.yAtIndex(i);
     y[i] = sinTheta * seisB.yAtIndex(i) + cosTheta * seisA.yAtIndex(i);
   }
-  let outSeisRad = seisA.clone().y(x).chanCode(seisA.chanCode().slice(0,2)+"R");
-  let outSeisTan = seisA.clone().y(y).chanCode(seisA.chanCode().slice(0,2)+"T");
+  let outSeisRad = seisA.clone().y(y).chanCode(seisA.chanCode().slice(0,2)+"R");
+  let outSeisTan = seisA.clone().y(x).chanCode(seisA.chanCode().slice(0,2)+"T");
   let out = {
     "radial": outSeisRad,
     "transverse": outSeisTan,
