@@ -16,8 +16,8 @@ var dsQuery = new ds.DataSelectQuery()
   .stationCode('JSC')
   .locationCode('00')
   .channelCode('HHZ')
-  .startTime(new Date(Date.parse('2017-03-01T20:15:04Z')))
-  .endTime(new Date(Date.parse('2017-03-01T20:16:14Z')));
+  .startTime('2017-03-01T20:15:04Z')
+  .endTime('2017-03-01T20:16:14Z');
 
 var div = d3.select('div.miniseed');
 var divP = div.append('p');
@@ -44,7 +44,7 @@ console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" 
                                  seisplotjs_filter.LOW_PASS,
                                  0, // low corner
                                  1, // high corner
-                                 
+
                                  1/seismogram[0].sampleRate() // delta (period)
                         );
       var filteredSeismogram = [];
@@ -169,5 +169,5 @@ console.log("x domain: "+x.domain());
       .attr("stroke-linecap", "round")
       .attr("stroke-width", 1.5)
       .attr("d", line);
-  
+
 }
