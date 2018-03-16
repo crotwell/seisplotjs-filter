@@ -98,6 +98,16 @@ export function calcDFT(waveform, npts) {
   return out;
 }
 
+export function inverseDFT(packedFreq, npts) {
+  let log2N = 4;
+  let N = 16;
+  while(N < packedFreq.length) { log2N += 1; N = 2 * N;}
+  let dft = new OregonDSP.fft.RDFT(log2N);
+  let out = Array(N).fill(0);
+  dft.evaluateInverse(packedFreq, out);
+  return out.slice(0, npts);
+}
+
 export function createButterworth(numPoles,
                                   passband,
                                   lowFreqCorner,
