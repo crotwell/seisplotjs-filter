@@ -1,6 +1,7 @@
 
 // this comes from the seisplotjs miniseed bundle
 var ds = seisplotjs_fdsndataselect;
+var st = seisplotjs_fdsnstation;
 var wp = seisplotjs_waveformplot;
 var d3 = wp.d3;
 var miniseed = wp.miniseed;
@@ -11,6 +12,15 @@ var doRunQuery = true;
 
 
 var dsQuery = new ds.DataSelectQuery()
+  .nodata(404)
+  .networkCode('CO')
+  .stationCode('JSC')
+  .locationCode('00')
+  .channelCode('HHZ')
+  .startTime('2017-03-01T20:15:04Z')
+  .endTime('2017-03-01T20:16:14Z');
+
+var responseQuery = new st.StationQuery()
   .nodata(404)
   .networkCode('CO')
   .stationCode('JSC')
@@ -38,6 +48,29 @@ console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" 
       var svgdiv = d3.select('div.rawseisplot');
       var seisplot = new wp.chart(svgdiv, seismogram);
       seisplot.draw();
+
+      responseQuery.query(st.LEVEL_RESPONSE).then(netArray => {
+        console.log("net: "+netArray[0].codes());
+          console.log("sta: "+netArray[0].stations()[0].codes());
+            console.log("chan: "+netArray[0].stations()[0].channels()[0].codes());
+              console.log("resp: "+netArray[0].stations()[0].channels()[0].response());
+        var response = netArray[0].stations()[0].channels()[0].response();
+        console.log("resp2: "+response);
+        var correctedSeismogram = [];
+        for(let i=0; i<seismogram.length; i++) {
+          correctedSeismogram.push(seisplotjs_filter.transfer(seismogram[i],
+                                            response,
+                                            .01,
+                                            .02,
+                                            25,
+                                            50));
+        }
+
+        var svgTransfer = d3.select('div.transferseisplot');
+        var transferPlot = new wp.chart(svgTransfer, correctedSeismogram);
+        transferPlot.draw();
+      });
+
 
       let butterworth = seisplotjs_filter.createButterworth(
                                  4, // poles
