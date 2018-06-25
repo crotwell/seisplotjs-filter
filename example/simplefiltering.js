@@ -17,8 +17,8 @@ var dsQuery = new ds.DataSelectQuery()
   .stationCode('JSC')
   .locationCode('00')
   .channelCode('HHZ')
-  .startTime('2017-03-01T20:15:04Z')
-  .endTime('2017-03-01T20:16:14Z');
+  .startTime('2017-03-01T20:05:00Z')
+  .endTime('2017-03-01T20:15:00Z');
 
 var responseQuery = new st.StationQuery()
   .nodata(404)
@@ -58,7 +58,8 @@ console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" 
         console.log("resp2: "+response);
         var correctedSeismogram = [];
         for(let i=0; i<seismogram.length; i++) {
-          correctedSeismogram.push(seisplotjs_filter.transfer(seismogram[i],
+          let taperSeis = seisplotjs_filter.taper.taper(seisplotjs_filter.rMean(seismogram[i]));
+          correctedSeismogram.push(seisplotjs_filter.transfer.transfer(taperSeis,
                                             response,
                                             .01,
                                             .02,
