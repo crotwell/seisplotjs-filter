@@ -1,14 +1,18 @@
 import * as OregonDSPTop from 'oregondsp';
 import * as model from 'seisplotjs-model';
 
+import * as transfer  from './transfer';
+import * as taper  from './taper';
+
 let OregonDSP = OregonDSPTop.com.oregondsp.signalProcessing;
 
-export { OregonDSP, model };
+export { OregonDSP, model, taper, transfer };
+
 
 // if OregonDSP is loaded (here it is) we want to use
 // its Complex instead of the simple one defined in model
 model.createComplex = function(real, imag) {
-  return new OregonDSP.filter.iir.Complex_init(real, imag);
+  return OregonDSP.filter.iir.Complex_init(real, imag);
 };
 
 export let BAND_PASS = OregonDSP.filter.iir.PassbandType.BANDPASS;
@@ -99,9 +103,15 @@ export function calcDFT(waveform, npts) {
 }
 
 export function inverseDFT(packedFreq, npts) {
+  if (npts > packedFreq.length) {
+    throw new Error("Not enough points in packed freq array for "+npts+", only "+packedFreq.length);
+  }
   let log2N = 4;
   let N = 16;
   while(N < packedFreq.length) { log2N += 1; N = 2 * N;}
+  if (N != packedFreq.length) {
+    throw new Error("power of two check fails: "+N+" "+packedFreq.length);
+  }
   let dft = new OregonDSP.fft.RDFT(log2N);
   let out = Array(N).fill(0);
   dft.evaluateInverse(packedFreq, out);
