@@ -46,7 +46,8 @@
     "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "jest-cli": "^23.1.0"
+    "jest-cli": "^23.1.0",
+    "jest-extended": "^0.7.2"
   },
   "babel": {
     "presets": [
@@ -57,6 +58,7 @@
     "testPathIgnorePatterns": [
       "<rootDir>/example/",
       "<rootDir>/node_modules/"
-    ]
+    ],
+    "setupTestFrameworkScriptFile": "<rootDir>/test/jest.setup.js"
   }
 }

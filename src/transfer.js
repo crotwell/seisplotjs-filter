@@ -47,9 +47,9 @@ export function combine(freqValues, sampFreq,  sacPoleZero,
                  lowPass,
                  highPass,
                  highCut) {
-
         const deltaF = sampFreq / freqValues.length;
-        // handle zero freq
+
+        // handle zero freq, no imag, set real to 0
         freqValues[0] = 0;
         // handle nyquist
         let freq = sampFreq / 2;
@@ -98,7 +98,6 @@ export function combine(freqValues, sampFreq,  sacPoleZero,
             zeroOut = zeroOut.timesComplex( s.minusComplex(sacPoleZero.zeros[i]) );
         }
         let out = poleOut.overComplex(zeroOut);
-        // sac uses opposite sign in imag, so take conjugate
         return out.overReal( sacPoleZero.constant);
     }
 

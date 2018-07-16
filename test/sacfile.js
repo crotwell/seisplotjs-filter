@@ -1,34 +1,64 @@
 import * as filter from '../src/index';
 import fs from 'fs';
 
-const NVHDR_OFFSET = 76 * 4;
-const NPTS_OFFSET = 79 * 4;
-const DATA_OFFSET = 632;
+export const NVHDR_OFFSET = 76 * 4;
+export const NPTS_OFFSET = 79 * 4;
+export const DATA_OFFSET = 632;
 
-export function readSac(filename) {
+export function readDataView(filename) {
   return new Promise(function(resolve, reject) {
     fs.readFile(filename, function (err, data) {
       if (err) reject(err);
       else resolve(data.buffer);
     });
   }).then(data => {
-    let out = {};
+    return new DataView(data);
+  });
+}
 
-    let dv = new DataView(data);
-    let littleEndian = false;
-    let sacVer = dv.getUint32(NVHDR_OFFSET, true);
-    if (sacVer === 6) {
-      littleEndian = true;
-    }
-    out.delta = dv.getFloat32(0, littleEndian);
-    out.npts = dv.getUint32(NPTS_OFFSET, littleEndian);
-    let y = [];
-    let j=0;
-    for(let i=DATA_OFFSET; i < dv.byteLength; i+=4, j++) {
-      y[j] = dv.getFloat32(i, littleEndian);
-    }
-    out.y = y;
-    return out;
+export function readSac(filename) {
+  return readDataView(filename).then(dataView => {
+    return parseSac(dataView);
+  });
+}
+
+export function parseSac(dataView) {
+  let out = {};
+  let littleEndian = false;
+  let sacVer = dataView.getUint32(NVHDR_OFFSET, true);
+  if (sacVer === 6) {
+    littleEndian = true;
+  }
+  out.littleEndian = littleEndian;
+  out.delta = dataView.getFloat32(0, littleEndian);
+  out.npts = dataView.getUint32(NPTS_OFFSET, littleEndian);
+  let y = [];
+  let j=0;
+  for(let i=DATA_OFFSET; i < dataView.byteLength; i+=4, j++) {
+    y[j] = dataView.getFloat32(i, littleEndian);
+  }
+  out.y = y;
+  return out;
+}
+
+export function replaceYData(dataView, yData) {
+  let littleEndian = false;
+  let sacVer = dataView.getUint32(NVHDR_OFFSET, true);
+  if (sacVer === 6) {
+    littleEndian = true;
+  }
+  for(let i=DATA_OFFSET, j=0; i < dataView.byteLength && j < yData.length; i+=4, j++) {
+     dataView.setFloat32(i, yData[j], littleEndian);
+  }
+  return dataView;
+}
+
+export function writeSac(sacDataView, filename) {
+  return new Promise(function(resolve, reject) {
+    fs.writeFile(filename, new Uint8Array(sacDataView.buffer), function (err) {
+      if (err) reject(err);
+      else resolve();
+    });
   })
 }
 

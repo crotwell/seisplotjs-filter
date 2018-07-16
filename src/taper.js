@@ -7,18 +7,15 @@ export function taper(seis, width = 0.05, taperType = HANNING) {
 
   let out = seis.clone();
   let data = out.y();
-  let w = data.length * width;
+  let w = Math.floor(data.length * width);
   let coeff = getCoefficients(taperType, w);
   const omega = coeff[0];
   const f0 = coeff[1];
   const f1 = coeff[2];
-  data[0] = 0;
-  data[data.length-1] = 0;
-  for(let i = 1; i < w; i++) {
-    //console.log("taper data "+data[i]+" "+((f0 - f1 * Math.cos(omega * i))));
-      data[i] = data[i] * (f0 - f1 * Math.cos(omega * i));
-      data[data.length - i - 1] = data[data.length - i - 1] * (f0 - f1
-              * Math.cos(omega * i));
+  for(let i = 0; i < w; i++) {
+    const taperFactor = (f0 - f1 * Math.cos(omega * i));
+    data[i] = data[i] * taperFactor;
+    data[data.length - i - 1] = data[data.length - i - 1] * taperFactor;
   }
   out.y(data);
   return out;

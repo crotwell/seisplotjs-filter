@@ -1,50 +1,23 @@
 import * as filter from '../src/index';
-import {readSac, readSacPoleZero} from './sacfile';
+import {readSac, parseSac, readSacPoleZero, readDataView, writeSac, replaceYData} from './sacfile';
 
 const ONE_COMPLEX = filter.model.createComplex(1, 0);
 /**
  * @author crotwell Created on Jul 27, 2005
  */
 
- expect.extend({
-   toBeCloseToArray(received, argument, digits) {
-     const pass = (received.length == argument.length);
-     if (! pass) {
-       return {
-         message: () =>
-           `expected array length ${received.length} not to be ${argument.length}`,
-         pass: false,
-       };
-     }
-     let i;
-     for (i=0; i<received.length; i++) {
-         let m = expect(argument[i]).toBeCloseTo(received[i], digits);
-         if ( ! m.pass) {
-           return {
-             message: () => `at index ${i} `+m.message(),
-             pass: false,
-           };
 
-       }
-     }
-     if (pass) {
-       return {
-         message: () =>
-           `expected array not to be close to array`,
-         pass: true,
-       };
-     }
-   },
- });
-
-test("testTaper", () => {
-    expect(filter.transfer.freqTaper(0, 1, 2, 3, 4)).toBeCloseTo(0, 5);
-    expect(filter.transfer.freqTaper(1, 1, 2, 3, 4)).toBeCloseTo(0, 5);
-    expect(filter.transfer.freqTaper(2, 1, 2, 3, 4)).toBeCloseTo(1, 5);
-    expect(filter.transfer.freqTaper(1.5, 1, 2, 3, 4)).toBeCloseTo(.5, 5);
-    expect(filter.transfer.freqTaper(3, 1, 2, 3, 4)).toBeCloseTo(1, 5);
-    expect(filter.transfer.freqTaper(4, 1, 2, 3, 4)).toBeCloseTo(0, 5);
-    expect(filter.transfer.freqTaper(5, 1, 2, 3, 4)).toBeCloseTo(0, 5);
+test("test freq Taper", () => {
+    expect(filter.transfer.freqTaper(0, 1, 2, 10, 20)).toBeCloseTo(0, 5);
+    expect(filter.transfer.freqTaper(.9, 1, 2, 10, 20)).toBeCloseTo(0, 5);
+    expect(filter.transfer.freqTaper(1, 1, 2, 10, 20)).toBeCloseTo(0, 5);
+    expect(filter.transfer.freqTaper(2, 1, 2, 10, 20)).toBeCloseTo(1, 5);
+    expect(filter.transfer.freqTaper(1.01, 1, 2, 10, 20)).toBeCloseTo(0, 3);
+    expect(filter.transfer.freqTaper(1.5, 1, 2, 10, 20)).toBeCloseTo(.5, 5);
+    expect(filter.transfer.freqTaper(1.99, 1, 2, 10, 20)).toBeCloseTo(1, 3);
+    expect(filter.transfer.freqTaper(5, 1, 2, 10, 20)).toBeCloseTo(1, 5);
+    expect(filter.transfer.freqTaper(10, 1, 2, 10, 20)).toBeCloseTo(1, 5);
+    expect(filter.transfer.freqTaper(20, 1, 2, 10, 20)).toBeCloseTo(0, 5);
 });
 
 test("TaperVsSac", () => {
@@ -137,11 +110,25 @@ test("testEvalPoleZero", () => {
       zeros: zeros,
       constant: 2.94283674E10
     };
+    // separate test for zero freq due to polezero gives 0 here
+    let dhi = filter.transfer.evalPoleZeroInverse(sacPoleZero, sacout[0][0]);
+    expect(dhi.real()).toBeCloseTo(sacout[0][1], 4);
+    expect(dhi.imag()).toBeCloseTo(sacout[0][2], 4);
     for(let i = 1; i < sacout.length; i++) {
         let dhi = filter.transfer.evalPoleZeroInverse(sacPoleZero, sacout[i][0]);
         dhi = ONE_COMPLEX.overComplex(dhi);
-        expect(sacout[i][1] / dhi.real()).toBeCloseTo(1.0, 4);
-        expect(sacout[i][2] / dhi.imag()).toBeCloseTo(1.0, 4);
+        expect(dhi.real()).toBeCloseToRatio(sacout[i][1], 5);
+        expect(dhi.imag()).toBeCloseToRatio(sacout[i][2], 5);
+        // if (sacout[i][1] === 0) {
+        //   expect(sacout[i][1] / dhi.real()).toBeCloseTo(1.0, 6);
+        // } else {
+        //   expect((sacout[i][1] - dhi.real())/sacout[i][1]).toBeCloseTo(0.0, 6);
+        // }
+        // if (sacout[i][2] === 0) {
+        //   expect(sacout[i][2] / dhi.imag()).toBeCloseTo(1.0, 4);
+        // } else {
+        //   expect((sacout[i][2] - dhi.imag())/sacout[i][2]).toBeCloseTo(0.0, 6);
+        // }
     }
 });
 
@@ -163,13 +150,13 @@ test("ReadPoleZero", () => {
     };
     expect(pz.zeros.length).toBe(sacPoleZero.zeros.length);
     for (let i=0; i<pz.zeros.length; i++) {
-      expect(pz.zeros[i].real()).toBeCloseTo(sacPoleZero.zeros[i].real(), 5);
-      expect(pz.zeros[i].imag()).toBeCloseTo(sacPoleZero.zeros[i].imag(), 5);
+      expect(pz.zeros[i].real()).toBeCloseTo(sacPoleZero.zeros[i].real(), 9);
+      expect(pz.zeros[i].imag()).toBeCloseTo(sacPoleZero.zeros[i].imag(), 9);
     }
     expect(pz.poles.length).toBe(sacPoleZero.poles.length);
     for (let i=0; i<pz.poles.length; i++) {
-      expect(pz.poles[i].real()).toBeCloseTo(sacPoleZero.poles[i].real(), 5);
-      expect(pz.poles[i].imag()).toBeCloseTo(sacPoleZero.poles[i].imag(), 5);
+      expect(pz.poles[i].real()).toBeCloseTo(sacPoleZero.poles[i].real(), 9);
+      expect(pz.poles[i].imag()).toBeCloseTo(sacPoleZero.poles[i].imag(), 9);
     }
     expect(pz.constant).toBe(sacPoleZero.constant);
   });
@@ -211,21 +198,33 @@ test("PoleZeroTaper", () => {
       const lowPass = 0.01;
       const highPass = 1e5;
       const highCut = 1e6;
-      console.log("sac.delta: "+sac.delta+" samprate: "+samprate+"  "+out.length);
       const deltaF = samprate / out.length;
       let freq;
       let respAtS;
+      // put into form for arrayToBeCloseTo matcher
+      let sacFreqArray = [];
+      let sacRealArray = [];
+      let sacImagArray = [];
+      let calcRealArray = [];
+      let calcImagArray = [];
       for(let i = 0; i < sacout.length; i++) {
           freq = i * deltaF;
-          //console.log(i+" freq test "+freq+"  "+sacout[i][0]);
-          expect(freq).toBeCloseTo(sacout[i][0], 5);
+          expect(freq).toBeCloseToRatio(sacout[i][0], 5);
           respAtS = filter.transfer.evalPoleZeroInverse(poleZero, freq);
           respAtS = respAtS.timesReal(deltaF*filter.transfer.freqTaper(freq,
                                                  lowCut,
                                                  lowPass,
                                                  highPass,
                                                  highCut));
-
+          sacFreqArray.push(freq);
+          sacRealArray.push(sacout[i][1]);
+          sacImagArray.push(sacout[i][2]);
+          calcRealArray.push(respAtS.real());
+          calcImagArray.push(respAtS.imag());
+      }
+      expect(calcRealArray).arrayToBeCloseToRatio(sacRealArray, 5);
+      expect(calcImagArray).arrayToBeCloseToRatio(sacImagArray, 5);
+/*
           if(sacout[i][0] == 0 || respAtS.real() == 0) {
             expect(respAtS.real()).toBeCloseTo(sacout[i][1], 5);
               // assertEquals("real " + i + " " + respAtS.real()+"   "+sacout[i][1],
@@ -233,7 +232,7 @@ test("PoleZeroTaper", () => {
               //              respAtS.real() ,
               //              0.00001);
           } else {
-              expect(respAtS.real()).toBeCloseTo(sacout[i][1], 5);
+              expect(respAtS.real()).toBeCloseToRatio(sacout[i][1], 5);
               // assertEquals("real " + i + " " + respAtS.real()+"   "+sacout[i][1], 1, sacout[i][1]
               //         / respAtS.real(), 0.00001);
           }
@@ -244,74 +243,17 @@ test("PoleZeroTaper", () => {
               //              respAtS.imag() ,
               //              0.00001);
           } else {
-              expect(respAtS.imag()).toBeCloseTo(-1*sacout[i][2], 5);
+            expect(respAtS.imag()).toBeCloseToRatio(sacout[i][2], 5);
               // assertEquals("imag " + i + " " + respAtS.imag(),
               //              -1,
               //              sacout[i][2] / respAtS.imag() ,
               //              0.00001);
           }
-
       }
+      */
     });
 });
 
-test("FFT", () => {
-  return readSac("./test/data/IU.HRV.__.BHE.SAC")
-    .then(sac => {
-      const samprate = 1/ sac.delta;
-      let data = sac.y;
-      /* sac premultiplies the data by the sample period before doing the fft. Later it
-       * seems to be cancled out by premultiplying the pole zeros by a similar factor.
-       * I don't understand why they do this, but am reporducing it in order to be
-       * compatible.
-       */
-      for(let i = 0; i < data.length; i++) {
-          data[i] /= samprate;
-      }
-      const out = filter.calcDFT(data, data.length);
-      const sacout =  [ [695917, 0],
-                        [-34640.4, 7593.43],
-                        [-28626.7, -34529.8],
-                        [-28644.3, -18493.2],
-                        [-17856.8, -14744.9],
-                        [-26180.4, -13016],
-                        [-35773.7, -28250.8],
-                        [-3204.24, -39020.9],
-                        [-6523.97, -9036.16],
-                        [-9328.12, -28816.7],
-                        [-4191.56, -4618.8],
-                        [-25816.1, -37862.5],
-                        [24457.3, -40734.5],
-                        [33569.6, 6327.69],
-                        [-35207.2, 24178.2],
-                        [-16313.6, -81431.5],
-                        [77269.7, -3612.97],
-                        [-5407.14, 32410.2],
-                        [-11010.8, 4728.02],
-                        [-15558.3, -24774.9]];
-      // real
-      expect(out[0]).toBeCloseTo(sacout[0][0], 0);
-      //imag
-      //expect(out[0].imag()).toBeCloseTo(sacout[0][1], 5);
-      // assertEquals("real " + 0 + " " + out[0].real(), 1, sacout[0][0]
-      //         / out[0].real() , 0.00001);
-      // assertEquals("imag " + 0 + " " + out[0].imag(),
-      //              sacout[0][1],
-      //              -out[0].imag() ,
-      //              0.00001);
-      for(let i = 1; i < sacout.length; i++) {
-        //real
-        expect(out[i]).toBeCloseTo(sacout[i][0], 1);
-        //imag
-        expect(out[out.length-i]).toBeCloseTo(sacout[i][1], 1);
-          // assertEquals("real " + i + " " + out[i].real(), 1, sacout[i][0]
-          //         / out[i].real(), 0.00001);
-          // // sac fft is opposite sign imag, so ratio is -1
-          // assertEquals("imag " + i + " " + out[i].imag(), -1, sacout[i][1]
-          //         / out[i].imag(), 0.00001);
-      }
-    });
-});
 
 
 test("Combine", () => {
@@ -362,6 +304,7 @@ test("Combine", () => {
             //               out[i].real() ,
             //               0.00001);
           } else {
+            expect(out[i]).toBeCloseTo(sacout[i][0], 9);
             expect(sacout[i][0]/ out[i]).toBeCloseTo(1, 5);
               // assertEquals("real " + i + " " + out[i].real()+"  "+sacout[i][0], 1, sacout[i][0]
               //         / out[i].real(), 0.00001);
@@ -375,6 +318,7 @@ test("Combine", () => {
               //              out[i].imag() ,
               //              0.00001);
           } else {
+            expect(out[out.length-i]).toBeCloseTo(sacout[i][1], 9);
             expect(sacout[i][1]/ out[out.length-i]).toBeCloseTo(1, 5);
               // assertEquals("imag " + i + " " + out[i].imag()+"  "+sacout[i][1],
               //              -1,
@@ -386,16 +330,144 @@ test("Combine", () => {
 });
 
 /*
- r IU.HRV.__.BHE.SAC.0
- transfer from polezero subtype hrv.bhe.sacpz to none freqlimits 0.005 0.01 1e5 1e6
- */
-test("HRV", () => {
-  return Promise.all([readSac("./test/data/transfer.sac"),
-                      readSac("./test/data/IU.HRV.__.BHE.SAC"),
+fg IMPULSE NPTS 1024
+w impulse.sac
+transfer from polezero subtype onezero.sacpz to none freqlimits 0.005 0.01 1e5 1e6
+fft
+wsp am impulse_onezero_fftam.sac
+*/
+test("impulse one zero combina amp", () => {
+  return Promise.all([readSac("./test/data/impulse.sac"),
+                      readSac("./test/data/impulse_onezero.sac"),
+                      readSacPoleZero("./test/data/onezero.sacpz"),
+                      readSac("./test/data/impulse_onezero_fftam.sac.am")])
+  .then ( result => {
+      let orig = result[0];
+      let sactfr = result[1];
+      let pz = result[2];
+      let sacAmp = result[3];
+      const origseis = new filter.model.Seismogram(orig.y, 1/orig.delta, moment.utc());
+
+      expect(orig.y.length).toBe(1024);
+      expect(orig.delta).toBe(1);
+      expect(sacAmp.y.length).toBe(1024/2+1);
+      const samprate = 1/ orig.delta;
+      let data = orig.y;
+      // for(let i = 0; i < data.length; i++) {
+      //     data[i] /= samprate;
+      // }
+
+
+      const outfft = filter.calcDFT(data, data.length);
+      expect(outfft.length).toBe(1024);
+      expect(samprate/outfft.length/2).toBeCloseTo(1/1024/2, 9);
+      //assertEquals("delfrq ", 0.000610352, samprate/out.length, 0.00001);
+      const out = filter.transfer.combine(outfft.slice(), samprate, pz, 0.005, 0.01, 1e5, 1e6);
+      expect(out.length).toBe(1024);
+      // sac and oregondsp differ by const len in fft
+      let outMulLength = out.map(d => d * out.length);
+      const bagAmPh = filter.ampPhase(outMulLength);
+
+      let saveDataPromise = null;
+      if (false) {
+        // for debugging, save data as sac file
+        saveDataPromise = readDataView("./test/data/impulse_onezero_fftam.sac.am").then(dataView => {
+            let inSac = parseSac(dataView);
+            expect(bagAmPh.amp.length).toBe(inSac.npts);
+            return writeSac(replaceYData(dataView, bagAmPh.amp), "./test/data/impulse_onezero_fftam.bag.am");
+          });
+      }
+
+      return Promise.all([
+        orig,
+        sactfr,
+        pz,
+        sacAmp,
+        bagAmPh.amp,
+        bagAmPh.phase,
+        out,
+        saveDataPromise
+      ]);
+    }).then(result => {
+        let orig = result[0];
+        let sactfr = result[1];
+        let pz = result[2];
+        let sacAmp = result[3];
+        let bagAmp= result[4];
+        let bagPhase = result[5];
+        let out = result[6];
+      // freq below lowcut should be zero, but sac has very small non-zero value,
+      // so check first 6 values (all below lowcut) and last value separately
+      expect(bagAmp[0]).toBeCloseTo(sacAmp.y[0], 9);
+      expect(bagAmp[1]).toBeCloseTo(sacAmp.y[1], 8);
+      expect(bagAmp[2]).toBeCloseTo(sacAmp.y[2], 8);
+      expect(bagAmp[3]).toBeCloseTo(sacAmp.y[3], 7);
+      expect(bagAmp[4]).toBeCloseTo(sacAmp.y[4], 7);
+      expect(bagAmp[5]).toBeCloseTo(sacAmp.y[5], 7);
+
+      expect(bagAmp.slice(6, bagAmp.length-6)).arrayToBeCloseToRatio(sacAmp.y.slice(6, sacAmp.y.length-6), 5);
+
+      expect(bagAmp[bagAmp.length-1]).toBeCloseTo(sacAmp.y[sacAmp.y.length-1], 9);
+
+  });
+});
+
+/*
+fg IMPULSE NPTS 1024
+w impulse.sac
+transfer from polezero subtype onezero.sacpz to none freqlimits 0.005 0.01 1e5 1e6
+w impulse_corrected.sac
+*/
+test("impulse one zero", () => {
+  return Promise.all([readSac("./test/data/impulse.sac"),
+                      readSac("./test/data/impulse_onezero.sac"),
+                      readSacPoleZero("./test/data/onezero.sacpz"),
+                      readSacPoleZero("./test/data/impulse_onezero_fftam.sac.am")])
+  .then ( result => {
+      let orig = result[0];
+      let sactfr = result[1];
+      let pz = result[2];
+      let sacAm = result[3];
+      const origseis = new filter.model.Seismogram(orig.y, 1/orig.delta, moment.utc());
+      let bagtfr = filter.transfer.transferSacPZ(origseis,
+                                      pz,
+                                      .005,
+                                      0.01,
+                                      1e5,
+                                      1e6);
+      const sacdata = sactfr.y;
+      const bagdata = bagtfr.y();
+
+      let saveDataPromise = Promise.resolve(null);
+      if (false) {
+        // for debugging, save data to sac file
+        saveDataPromise = saveDataPromise.then(() => {
+          return readDataView("./test/data/impulse_onezero.sac").then(dataView => {
+            return writeSac(replaceYData(dataView, bagdata), "./test/data/impulse_onezero.bag");
+          });
+        });
+      }
+      return saveDataPromise.then( () => {
+        expect(bagdata).arrayToBeCloseToRatio(sacdata, 2);
+      }).catch(err => {
+        console.log("Error write sac "+err);
+      });
+    });
+
+});
+/*
+fg IMPULSE NPTS 1024
+w impulse.sac
+transfer from polezero subtype hrv.bhe.sacpz to none freqlimits 0.005 0.01 1e5 1e6
+w impulse_corrected.sac
+*/
+test("impulse", () => {
+  return Promise.all([readSac("./test/data/impulse.sac"),
+                      readSac("./test/data/impulse_corrected.sac"),
                       readSacPoleZero("./test/data/hrv.bhe.sacpz")])
   .then ( result => {
-      let sactfr = result[0];
-      let orig = result[1];
+      let orig = result[0];
+      let sactfr = result[1];
       let pz = result[2];
       const origseis = new filter.model.Seismogram(orig.y, 1/orig.delta, moment.utc());
       let bagtfr = filter.transfer.transferSacPZ(origseis,
@@ -407,18 +479,25 @@ test("HRV", () => {
       const sacdata = sactfr.y;
       const bagdata = bagtfr.y();
 
-      for(let i = 0; i < bagdata.length; i++) {
-          if (bagdata[i] === 0) {
-            expect(bagdata[i]).toBeCloseTo(sacdata[i], 3);
-            //  assertEquals("data", sacdata[i] , bagdata[i], 0.0001);
-          } else {
-            expect(sacdata[i] / bagdata[i]).toBeCloseTo(1, 1);
-            //  assertEquals("data", 1, sacdata[i] / bagdata[i], 0.0001);
-          }
+      let saveDataPromise = Promise.resolve(null);
+      if (false) {
+        // for debugging, save data to sac file
+        saveDataPromise = saveDataPromise.then(() => {
+          return readDataView("./test/data/impulse.sac").then(dataView => {
+            return writeSac(replaceYData(dataView, bagdata), "./test/data/impulse_bag.sac");
+          });
+        });
       }
+      return saveDataPromise.then( () => {
+        expect(bagdata).arrayToBeCloseToRatio(sacdata, 6);
+      }).catch(err => {
+        console.log("Error write sac "+err);
+      });
+
   });
 
 });
+
 
 /*
  *
@@ -447,32 +526,13 @@ test("HRV Retest", () => {
       const bag_rmean = filter.rMean(origseis);
       const rmean_data = bag_rmean.y();
       let sacdata = rmean.y;
-      for(let i = 0; i < rmean_data.length; i++) {
-          if (Math.abs(rmean_data[i]) < 1e-8) {
-            expect(rmean_data[i]).toBeCloseTo(sacdata[i], 3);
-            //  assertEquals("data", sacdata[i] , bagdata[i], 0.0001);
-          } else {
-            expect(sacdata[i] / rmean_data[i]).toBeCloseTo(1, 3);
-            //  assertEquals("data", 1, sacdata[i] / bagdata[i], 0.0001);
-          }
-      }
+      expect(rmean_data).arrayToBeCloseToRatio(sacdata, 5);
 
       const bag_taper = filter.taper.taper(bag_rmean, 0.05, filter.taper.HANNING);
       const taper_data = bag_taper.y();
       sacdata = taper.y;
 
-      for(let i = 0; i < taper_data.length; i++) {
-          if (Math.abs(taper_data[i]) < 1e-8) {
-            expect(taper_data[i]).toBeCloseTo(sacdata[i], 3);
-            //  assertEquals("data", sacdata[i] , bagdata[i], 0.0001);
-          } else {
-            if (sacdata[i] / taper_data[i] < .9 || sacdata[i] / taper_data[i] > 1.1) {
-              console.log(i+" "+sacdata[i]+"  "+taper_data[i]);
-            }
-            expect(sacdata[i] / taper_data[i]).toBeCloseTo(1, 2);
-            //  assertEquals("data", 1, sacdata[i] / bagdata[i], 0.0001);
-          }
-      }
+      expect(taper_data).arrayToBeCloseToRatio(sacdata, 5);
 
       let bagtfr = filter.transfer.transferSacPZ(bag_taper,
                                       pz,
@@ -482,18 +542,8 @@ test("HRV Retest", () => {
                                       1e6);
       const bagdata = bagtfr.y();
       sacdata = transfer.y;
-      for(let i = 0; i < bagdata.length; i++) {
-          if (Math.abs(bagdata[i]) < 1e-8) {
-            expect(bagdata[i]).toBeCloseTo(sacdata[i], 3);
-            //  assertEquals("data", sacdata[i] , bagdata[i], 0.0001);
-          } else {
-            if (sacdata[i] / bagdata[i] < .99 || sacdata[i] / bagdata[i] > 1.01) {
-              console.log(i+" "+sacdata[i]+"  "+bagdata[i]);
-            }
-            expect(sacdata[i] / bagdata[i]).toBeCloseTo(1, 1);
-            //  assertEquals("data", 1, sacdata[i] / bagdata[i], 0.0001);
-          }
-      }
+      expect(bagdata).arrayToBeCloseToRatio(sacdata, 5, .0001, 5);
+
   });
 
 });
@@ -501,6 +551,6 @@ test("HRV Retest", () => {
 
 
 function notest(name, fun) {
-  console.log("skipping "+name);
+  console.log("#### Warning: skipping test '"+name+"'");
   return;
 }
