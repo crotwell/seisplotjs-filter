@@ -118,6 +118,34 @@ export function inverseDFT(packedFreq, npts) {
   return out.slice(0, npts);
 }
 
+/** converts a packed real/imag array output from calcDFT into
+ * amplitude and phase. Output is object with amp and phase fields,
+ * each of which is an array.
+ */
+export function ampPhase(packedFreq) {
+  let out = {
+    amp: [],
+    phase: [],
+    npts: 0
+  }
+  let c = model.createComplex(packedFreq[0], 0);
+  out.amp.push(c.abs());
+  out.phase.push(c.angle());
+  out.npts++;
+  const L = packedFreq.length;
+  for(let i=1; i<packedFreq.length/2; i++) {
+    c = model.createComplex(packedFreq[i], packedFreq[L-i]);
+    out.amp.push(c.abs());
+    out.phase.push(c.angle());
+    out.npts++;
+  }
+  c = model.createComplex(packedFreq[L/2], 0);
+  out.amp.push(c.abs());
+  out.phase.push(c.angle());
+  out.npts++;
+  return out;
+}
+
 export function createButterworth(numPoles,
                                   passband,
                                   lowFreqCorner,
