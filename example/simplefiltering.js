@@ -12,7 +12,7 @@ var doRunQuery = true;
 // doRunQuery = false;//for testing
 
 let eqTime = moment.utc('2018-07-13T09:46:49Z').add(300, 'seconds');
-let times = new ds.StartEndDuration(eqTime, null, 3600, 0);
+let times = new ds.StartEndDuration(eqTime, null, 1200, 0);
 var dsQuery = new ds.DataSelectQuery()
   .nodata(404)
   .networkCode('CO')
