@@ -6,19 +6,21 @@ var wp = seisplotjs_waveformplot;
 var d3 = wp.d3;
 var miniseed = wp.miniseed;
 var OregonDSP = seisplotjs_filter.OregonDSP
+var moment = ds.model.moment;
 
 var doRunQuery = true;
 // doRunQuery = false;//for testing
 
-
+let eqTime = moment.utc('2018-07-13T09:46:49Z').add(300, 'seconds');
+let times = new ds.StartEndDuration(eqTime, null, 3600, 0);
 var dsQuery = new ds.DataSelectQuery()
   .nodata(404)
   .networkCode('CO')
   .stationCode('JSC')
   .locationCode('00')
   .channelCode('HHZ')
-  .startTime('2017-03-01T20:05:00Z')
-  .endTime('2017-03-01T20:15:00Z');
+  .startTime(times.start)
+  .endTime(times.end);
 
 var responseQuery = new st.StationQuery()
   .nodata(404)
@@ -26,8 +28,8 @@ var responseQuery = new st.StationQuery()
   .stationCode('JSC')
   .locationCode('00')
   .channelCode('HHZ')
-  .startTime('2017-03-01T20:15:04Z')
-  .endTime('2017-03-01T20:16:14Z');
+  .startTime(times.start)
+  .endTime(times.end);
 
 var div = d3.select('div.miniseed');
 var divP = div.append('p');
@@ -46,7 +48,7 @@ console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" 
 //      seismogram = seisplotjs_filter.rMean(seismogram);
 
       var svgdiv = d3.select('div.rawseisplot');
-      var seisplot = new wp.chart(svgdiv, seismogram);
+      var seisplot = new wp.Seismograph(svgdiv, seismogram);
       seisplot.draw();
 
       responseQuery.query(st.LEVEL_RESPONSE).then(netArray => {
