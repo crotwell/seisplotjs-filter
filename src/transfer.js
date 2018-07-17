@@ -191,7 +191,32 @@ export function convertToSacPoleZero( response) {
     return {
       poles:poles,
       zeros: zeros,
-      constant: constant
+      constant: constant,
+      toString: function() {
+        let s = ["sacPoleZero:"];
+        s.push("  poles: "+this.poles.length);
+        for(let i=0; i<this.poles.length; i++ ) {
+          s.push("    "+this.poles[i].real()+" "+this.poles[i].imag());
+        }
+        s.push("  zeros: "+this.zeros.length);
+        for(let i=0; i<this.zeros.length; i++ ) {
+          s.push("    "+this.zeros[i].real()+" "+this.zeros[i].imag());
+        }
+        s.push("  constant: "+this.constant);
+        if (this.debug) {
+          s.push("    gamma: "+this.debug.gamma);
+          s.push("    mulFactor: "+this.debug.mulFactor);
+          s.push("    sd: "+this.debug.sd);
+          s.push("    A0: "+this.debug.A0);
+        }
+        return s.join('\n');
+      },
+      debug: {
+        gamma: gamma,
+        mulFactor: mulFactor,
+        sd: sd,
+        A0: A0
+      }
     };
 }
 
