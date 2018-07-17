@@ -37,7 +37,7 @@ export function transferSacPZ(seis, sacPoleZero, lowCut, lowPass, highPass, high
         let out = seis.clone();
         out.y(values);
         //out.y_unit = UNITS.METER;
-        out.y_unit = 'm';
+        out.yUnit('m');
         return out;
     }
 
