@@ -1,6 +1,6 @@
 {
   "name": "seisplotjs-filter",
-  "version": "1.2.0-alpha.1",
+  "version": "1.2.0",
   "description": "Basic timesseries functions for seismic data.",
   "main": "./lib/index.js",
   "dependencies": {
