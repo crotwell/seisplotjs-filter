@@ -509,7 +509,7 @@ test("impulse", () => {
   transfer from polezero subtype hrv.bhe.sacpz to none freqlimits 0.005 0.01 1e5 1e6
   w 3_transfer.sac
 */
-test("HRV Retest", () => {
+test("HRV test", () => {
   return Promise.all([readSac("./test/data/IU.HRV.__.BHE.SAC"),
                       readSacPoleZero("./test/data/hrv.bhe.sacpz"),
                       readSac("./test/data/1_rmean.sac"),
@@ -544,6 +544,18 @@ test("HRV Retest", () => {
       sacdata = transfer.y;
       expect(bagdata).arrayToBeCloseToRatio(sacdata, 5, .0001, 5);
 
+      let saveDataPromise = Promise.resolve(null);
+      if (false) {
+        // for debugging, save data to sac file
+        saveDataPromise = saveDataPromise.then(() => {
+          return readDataView("./test/data/IU.HRV.__.BHE.SAC").then(dataView => {
+            return writeSac(replaceYData(dataView, bagdata), "./test/data/iu_hrv_transfer.bag");
+          });
+        });
+      }
+      return saveDataPromise.then( () => {
+        expect(bagdata).arrayToBeCloseToRatio(sacdata, 5, .0001, 5);
+      });
   });
 
 });
