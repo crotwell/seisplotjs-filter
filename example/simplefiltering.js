@@ -40,22 +40,13 @@ divP.append("a")
     .text(url);
 
 function processMiniseed(records) {
-
       let seismogram = miniseed.merge(records);
-for(let i=0; i<seismogram.length; i++) {
-console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" npts:"+seismogram[i].numPoints()+" sps: "+seismogram[i].sampleRate());
-}
-//      seismogram = seisplotjs_filter.rMean(seismogram);
-
       var svgdiv = d3.select('div.rawseisplot');
       var seisplot = new wp.Seismograph(svgdiv, seismogram);
+      seisplot.setYSublabel("count");
       seisplot.draw();
 
       responseQuery.query(st.LEVEL_RESPONSE).then(netArray => {
-        console.log("net: "+netArray[0].codes());
-          console.log("sta: "+netArray[0].stations()[0].codes());
-            console.log("chan: "+netArray[0].stations()[0].channels()[0].codes());
-              console.log("resp: "+netArray[0].stations()[0].channels()[0].response());
         var response = netArray[0].stations()[0].channels()[0].response();
         console.log("resp2: "+response);
         var correctedSeismogram = [];
@@ -70,7 +61,8 @@ console.log(i+" seismogram: "+seismogram[i]+" "+seismogram[i].y().slice(0,10)+" 
         }
 
         var svgTransfer = d3.select('div.transferseisplot');
-        var transferPlot = new wp.chart(svgTransfer, correctedSeismogram);
+        var transferPlot = new wp.Seismograph(svgTransfer, correctedSeismogram);
+        transferPlot.setYSublabel(correctedSeismogram[0].yUnit());
         transferPlot.draw();
       });
 
