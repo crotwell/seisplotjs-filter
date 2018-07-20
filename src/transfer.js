@@ -132,6 +132,10 @@ export const UNITS = {
   METER_PER_SECOND_PER_SECOND: new Qty('m/s2'),
 };
 
+/** Converts a StationXML response to SAC PoleZero style. This
+  * converts the analog to digital stage (usually 0) along
+  * with the overall gain, but does not include later FIR stages.
+  */
 export function convertToSacPoleZero( response) {
     const polesZeros = response.stages()[0].filter();
     let unit = response.instrumentSensitivity().inputUnits();
