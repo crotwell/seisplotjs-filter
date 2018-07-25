@@ -12,6 +12,7 @@
     "lint": "eslint 'src/*.js'",
     "pretest": "npm run prepare",
     "test": "jest",
+    "doc": "rimraf docs/api_${npm_package_version} && documentation build --config documentation.yml src/index.js src/transfer.js src/taper.js --github -o docs/api_${npm_package_version} -f html --document-exported ",
     "compile": "babel --presets env -d lib/ src/",
     "standalone": "browserify src/index.js --standalone seisplotjs_filter -o seisplotjs_filter_${npm_package_version}_standalone.js -t [ babelify --presets [ env ] ]",
     "prepare": "npm run compile"
@@ -40,6 +41,7 @@
     "babel-jest": "^23.0.1",
     "babel-preset-env": "^1.7.0",
     "babelify": "^8.0.0",
+    "documentation": "^8.0.2",
     "eslint": "^4.16.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.7.0",
